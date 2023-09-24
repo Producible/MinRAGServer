@@ -1,0 +1,8 @@
+{
+  "server_port": "8080",
+  "show_hidden": false,
+  "time_stamp": true,
+  "inclusive_extensions": "*",
+  "exclusive_extensions": "",
+  "exclusive_folders": ""
+}
