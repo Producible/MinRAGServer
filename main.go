@@ -9,7 +9,6 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
-	"time"
 )
 
 type GeneralSettings struct {
@@ -94,6 +93,9 @@ func projectHandler(w http.ResponseWriter, r *http.Request) {
 <title>FileToURLs</title>
 <link rel="stylesheet" href="/static/style.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+<script>
+    var appendTimestamp = `+fmt.Sprintf("%t", generalSettings.TimeStamp)+`;
+</script>
 </head>
 <body>
 <a href="/" class="back-button"><i class="fas fa-arrow-left"></i> Projects</a>
@@ -212,12 +214,6 @@ func writeDirectory(w http.ResponseWriter, path string, rootPath string, project
 			relativePath := strings.TrimPrefix(filepath.Join(path, file.Name()), rootPath)
 			relativePath = filepath.ToSlash(relativePath)
 			url := fmt.Sprintf("%s/%s", selectedConfig.ProjectURL, strings.TrimPrefix(relativePath, "/"))
-
-			// Append timestamp query parameter if time_stamp switch is enabled
-			if generalSettings.TimeStamp {
-				timestamp := fmt.Sprintf("%d", time.Now().Unix())
-				url = fmt.Sprintf("%s?%s", url, timestamp)
-			}
 
 			fileLink := fmt.Sprintf("/file?p=%s&path=%s", project, filepath.Join(path, file.Name()))
 			info := fmt.Sprintf("%s: %s", file.Name(), url)

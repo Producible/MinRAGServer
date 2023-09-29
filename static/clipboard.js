@@ -24,10 +24,24 @@ document.addEventListener('click', (event) => {
     const copyButton = event.target.closest('.copy-button');
     const copyInfoButton = event.target.closest('.copy-button-info');
     if (copyButton) {
-        const url = copyButton.getAttribute('data-url');
+        let url = copyButton.getAttribute('data-url');
+        if (appendTimestamp) {
+            const timestamp = new Date().getTime();
+            url += `?${timestamp}`;
+        }
         copyToClipboard(url);
     } else if (copyInfoButton) {
-        const info = copyInfoButton.getAttribute('data-info');
+        let info = copyInfoButton.getAttribute('data-info');
+        if (appendTimestamp) {
+            const timestamp = new Date().getTime();
+            const infoParts = info.split(': ');
+            info = `${infoParts[0]}: ${infoParts[1]}?${timestamp}`;
+        }
         copyToClipboard(info);
     }
 });
+
+
+
+
+
