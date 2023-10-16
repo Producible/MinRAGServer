@@ -215,7 +215,7 @@ func writeDirectory(w http.ResponseWriter, path string, rootPath string, project
 			relativePath = filepath.ToSlash(relativePath)
 			url := fmt.Sprintf("%s/%s", selectedConfig.ProjectURL, strings.TrimPrefix(relativePath, "/"))
 
-			fileLink := fmt.Sprintf("/file?p=%s&path=%s", project, filepath.Join(path, file.Name()))
+			fileLink := fmt.Sprintf("/file?p=%s&path=%s", project, relativePath)
 			info := fmt.Sprintf("%s: %s", file.Name(), url)
 			fmt.Fprintf(w, "<li><div class='item'><a href='%s' target='_blank'>%s</a> <a href='%s' target='_blank' class='buttons'><i class='fas fa-external-link-alt'></i></a> <button class='copy-button buttons' data-url='%s'><i class='fas fa-copy'></i></button> <button class='copy-button-info buttons' data-info='%s'><i class='fas fa-copy'></i></button></div></li>", fileLink, file.Name(), url, url, info)
 		}
