@@ -146,6 +146,46 @@ func fileHandler(w http.ResponseWriter, r *http.Request) {
 </html>`)
 }
 
+func jsonFileHandler(w http.ResponseWriter, r *http.Request) {
+	project := r.URL.Query().Get("p")
+	path := r.URL.Query().Get("path")
+
+	if project == "" || configs[project+".json"].ProjectName == "" {
+		http.Error(w, "Invalid project", http.StatusBadRequest)
+		return
+	}
+
+	selectedConfig = configs[project+".json"]
+	fullPath := filepath.Join(selectedConfig.RootPath, path)
+
+	data, err := ioutil.ReadFile(fullPath)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	lines := strings.Split(string(data), "\n")
+	jsonData := make([]map[string]interface{}, len(lines))
+	for i, line := range lines {
+		jsonData[i] = map[string]interface{}{
+			"line":    i + 1,
+			"content": line,
+		}
+	}
+
+	fileName := filepath.Base(fullPath)          // Get only the file name
+	relativePath := "/" + filepath.ToSlash(path) // Ensure path starts with "/"
+
+	response := map[string]interface{}{
+		"file": fileName,
+		"path": relativePath,
+		"data": jsonData,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
+}
+
 func writeDirectory(w http.ResponseWriter, path string, rootPath string, project string) {
 	files, err := ioutil.ReadDir(path)
 	if err != nil {
@@ -214,10 +254,11 @@ func writeDirectory(w http.ResponseWriter, path string, rootPath string, project
 			relativePath := strings.TrimPrefix(filepath.Join(path, file.Name()), rootPath)
 			relativePath = filepath.ToSlash(relativePath)
 			url := fmt.Sprintf("%s/%s", selectedConfig.ProjectURL, strings.TrimPrefix(relativePath, "/"))
+			info := fmt.Sprintf("%s: %s", file.Name(), url)
 
 			fileLink := fmt.Sprintf("/file?p=%s&path=%s", project, relativePath)
-			info := fmt.Sprintf("%s: %s", file.Name(), url)
-			fmt.Fprintf(w, "<li><div class='item'><a href='%s' target='_blank'>%s</a> <a href='%s' target='_blank' class='buttons'><i class='fas fa-external-link-alt'></i></a> <button class='copy-button buttons' data-url='%s'><i class='fas fa-copy'></i></button> <button class='copy-button-info buttons' data-info='%s'><i class='fas fa-copy'></i></button></div></li>", fileLink, file.Name(), url, url, info)
+			jsonLink := fmt.Sprintf("/jsonfile?p=%s&path=%s", project, relativePath)
+			fmt.Fprintf(w, "<li><div class='item'><a href='%s' target='_blank'>%s</a> <a href='%s' target='_blank' class='buttons'><i class='fas fa-external-link-alt'></i></a> <button class='copy-button buttons' data-url='%s'><i class='fas fa-copy'></i></button> <button class='copy-button-info buttons' data-info='%s'><i class='fas fa-copy'></i></button> <a href='%s' target='_blank' class='buttons'><i class='fas fa-file-code'></i></a></div></li>", fileLink, file.Name(), url, url, info, jsonLink)
 		}
 	}
 }
@@ -241,7 +282,8 @@ func main() {
 
 	http.Handle("/static/", http.StripPrefix("/static", http.FileServer(http.Dir("static"))))
 	http.HandleFunc("/", projectHandler)
-	http.HandleFunc("/file", fileHandler) // Register the new handler
+	http.HandleFunc("/file", fileHandler)
+	http.HandleFunc("/jsonfile", jsonFileHandler)
 
 	fmt.Println("Server is running on http://localhost:" + generalSettings.ServerPort)
 	http.ListenAndServe(":"+generalSettings.ServerPort, nil)
