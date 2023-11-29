@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"net"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -12,12 +13,13 @@ import (
 )
 
 type GeneralSettings struct {
-	ServerPort          string `json:"server_port"`
-	ShowHidden          bool   `json:"show_hidden"`
-	TimeStamp           bool   `json:"time_stamp"`
-	InclusiveExtensions string `json:"inclusive_extensions"`
-	ExclusiveExtensions string `json:"exclusive_extensions"`
-	ExclusiveFolders    string `json:"exclusive_folders"`
+	ServerPort                     string `json:"server_port"`
+	DisableExternalNetworkBrowsing bool   `json:"disable_external_network_browsing"`
+	ShowHidden                     bool   `json:"show_hidden"`
+	TimeStamp                      bool   `json:"time_stamp"`
+	InclusiveExtensions            string `json:"inclusive_extensions"`
+	ExclusiveExtensions            string `json:"exclusive_extensions"`
+	ExclusiveFolders               string `json:"exclusive_folders"`
 }
 
 var generalSettings GeneralSettings
@@ -33,6 +35,25 @@ type Config struct {
 
 var configs map[string]Config
 var selectedConfig Config
+
+// Helper function to check if an IP address is local
+func isLocalIP(ip string) bool {
+	localIPBlocks := []string{
+		"127.0.0.1/8",    // IPv4 loopback
+		"::1/128",        // IPv6 loopback
+		"10.0.0.0/8",     // Private-Use Networks
+		"172.16.0.0/12",  // Private-Use Networks
+		"192.168.0.0/16", // Private-Use Networks
+	}
+
+	for _, block := range localIPBlocks {
+		_, cidr, _ := net.ParseCIDR(block)
+		if cidr.Contains(net.ParseIP(ip)) {
+			return true
+		}
+	}
+	return false
+}
 
 func loadConfigs() error {
 	// Load general settings
@@ -73,6 +94,13 @@ func loadConfigs() error {
 }
 
 func projectHandler(w http.ResponseWriter, r *http.Request) {
+	// Check if the request is from a local IP
+	ip, _, _ := net.SplitHostPort(r.RemoteAddr)
+	if generalSettings.DisableExternalNetworkBrowsing && !isLocalIP(ip) {
+		http.Error(w, "Access denied", http.StatusForbidden)
+		return
+	}
+
 	project := r.URL.Query().Get("p")
 	if project == "" || configs[project+".json"].ProjectName == "" {
 		for filename, config := range configs {
@@ -90,7 +118,7 @@ func projectHandler(w http.ResponseWriter, r *http.Request) {
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FileToURLs</title>
+<title>MinFileServer</title>
 <link rel="stylesheet" href="/static/style.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
 <script>

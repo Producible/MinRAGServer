@@ -1,8 +1,9 @@
 {
   "server_port": "8080",
+  "disable_external_network_browsing": true,
   "show_hidden": false,
   "time_stamp": true,
-  "inclusive_extensions": "*",
+  "inclusive_extensions": "js,ts,tsx,json,css,html",
   "exclusive_extensions": "",
-  "exclusive_folders": ""
+  "exclusive_folders": "node_modules,build,dist,coverage"
 }

@@ -1,5 +1,5 @@
 {
   "project_name": "Project 1",
   "root_path": "./",
-  "project_url": "http://example.com/projects/project1"
+  "project_host": "http://example.com/projects/project1"
 }
