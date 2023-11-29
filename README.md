@@ -5,6 +5,9 @@ The MinFileServer is a Go-based web application that provides a user-friendly in
 
 ![image](https://github.com/greatwhiz/MinFileServer/assets/35230556/6e70a6f5-482b-49b3-b3cd-571e73005564)
 
+And strongly recommend using the Chrome extension ChatGPT Helper together to level up productivity.
+https://chromewebstore.google.com/detail/chatgpt-helper/pjaiffleeblodclagbgflpnmighceibl?hl=en
+
 ## Features
 - Display a list of projects configured in JSON files.
 - Navigate through directories and subdirectories of a project.
