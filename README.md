@@ -3,7 +3,7 @@
 
 The MinFileServer is a Go-based web application that provides a user-friendly interface to navigate through project directories and view file contents. It's designed to assist ChatGPT in reading files from URLs, with the support of scraping plugins. The application allows users quickly to browse through different projects, expand/collapse directories, and view file contents in a new window.
 
-![alt text]([http://url/to/img.png](https://github.com/greatwhiz/MinFileServer/assets/35230556/6df7b235-0204-484f-98a1-63e284d910b9)
+![image](https://github.com/greatwhiz/MinFileServer/assets/35230556/6e70a6f5-482b-49b3-b3cd-571e73005564)
 
 ## Features
 - Display a list of projects configured in JSON files.
