@@ -1,0 +1,4 @@
+./MinFileServer
+./.idea
+./go.mod
+./.gitignore
