@@ -46,9 +46,9 @@ GOOS=darwin GOARCH=amd64 go build
   "disable_external_network_browsing": true,
   "show_hidden": false,
   "time_stamp": true,
-  "inclusive_extensions": "*",
+  "inclusive_extensions": "js,ts,tsx,json,css,html",
   "exclusive_extensions": "",
-  "exclusive_folders": ""  
+  "exclusive_folders": "node_modules,build,dist,coverage"  
 }
 ```
 2. Create a folder named config and inside it, create a JSON file for each project you want to display. The JSON file should have the following structure:
@@ -56,18 +56,15 @@ GOOS=darwin GOARCH=amd64 go build
 {
     "project_name": "Project 1",
     "root_path": "/path/to/project",
-    "project_url": "http://external-domain:80",
-    "inclusive_extensions": "js,ts,tsx,json,css,html",
-    "exclusive_extensions": "",
-    "exclusive_folders": "node_modules,build,dist,coverage"  
+    "project_url": "http://external-domain:80"
 }
 ```
-The project_url includes the host and the port which can be access from Internet. You can use dynamic dns and port mapping to your local network.
+The project_url includes the host and the port which can be accessed from the Internet. You can use dynamic DNS and port mapping to your local network.
 
 ## Usage
 1. Run the server:
 ```
-./furl
+./MinFileServer
 ```
 2. Open your web browser and navigate to http://localhost:8080.
 3. Click on a project name to view its file tree.
