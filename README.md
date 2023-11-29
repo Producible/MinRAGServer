@@ -28,6 +28,7 @@ cd MinFileServer
 
 3. Build the project.
 ```
+go mod tidy
 go build
 ```
 
