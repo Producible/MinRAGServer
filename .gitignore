@@ -1,4 +1,5 @@
 ./MinFileServer
+./MinFileServer.exe
 ./.idea
 ./go.mod
 ./.gitignore

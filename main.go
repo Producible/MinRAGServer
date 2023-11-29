@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/gorilla/mux"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -101,11 +102,12 @@ func projectHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	project := r.URL.Query().Get("p")
+	vars := mux.Vars(r)
+	project := vars["project_json_name"]
 	if project == "" || configs[project+".json"].ProjectName == "" {
 		for filename, config := range configs {
 			projectID := strings.TrimSuffix(filename, ".json")
-			fmt.Fprintf(w, "<a href='/?p=%s'>%s</a><br>", projectID, config.ProjectName)
+			fmt.Fprintf(w, "<a href='/p/%s'>%s</a><br>", projectID, config.ProjectName)
 		}
 		return
 	}
@@ -144,8 +146,9 @@ func projectHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func fileHandler(w http.ResponseWriter, r *http.Request) {
-	project := r.URL.Query().Get("p")
-	path := r.URL.Query().Get("path")
+	vars := mux.Vars(r)
+	project := vars["project_json_name"]
+	path := vars["relativePath"]
 
 	if project == "" || configs[project+".json"].ProjectName == "" {
 		http.Error(w, "Invalid project", http.StatusBadRequest)
@@ -175,8 +178,9 @@ func fileHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func jsonFileHandler(w http.ResponseWriter, r *http.Request) {
-	project := r.URL.Query().Get("p")
-	path := r.URL.Query().Get("path")
+	vars := mux.Vars(r)
+	project := vars["project_json_name"]
+	path := vars["relativePath"]
 
 	if project == "" || configs[project+".json"].ProjectName == "" {
 		http.Error(w, "Invalid project", http.StatusBadRequest)
@@ -281,11 +285,11 @@ func writeDirectory(w http.ResponseWriter, path string, rootPath string, project
 			(len(exclusiveExtensions) == 0 || !contains(exclusiveExtensions, ext)) {
 			relativePath := strings.TrimPrefix(filepath.Join(path, file.Name()), rootPath)
 			relativePath = filepath.ToSlash(relativePath)
-			url := fmt.Sprintf("%s/%s", selectedConfig.ProjectURL, strings.TrimPrefix(relativePath, "/"))
-			info := fmt.Sprintf("%s: %s", file.Name(), url)
 
-			fileLink := fmt.Sprintf("/file?p=%s&path=%s", project, relativePath)
-			jsonLink := fmt.Sprintf("/jsonfile?p=%s&path=%s", project, relativePath)
+			fileLink := fmt.Sprintf("f/%s/%s", project, relativePath)
+			url := fmt.Sprintf("%s/%s", selectedConfig.ProjectURL, fileLink)
+			info := fmt.Sprintf("%s: %s", file.Name(), url)
+			jsonLink := fmt.Sprintf("j/%s/%s", project, relativePath)
 			fmt.Fprintf(w, "<li><div class='item'><a href='%s' target='_blank'>%s</a> <a href='%s' target='_blank' class='buttons'><i class='fas fa-external-link-alt'></i></a> <button class='copy-button buttons' data-url='%s'><i class='fas fa-copy'></i></button> <button class='copy-button-info buttons' data-info='%s'><i class='fas fa-copy'></i></button> <a href='%s' target='_blank' class='buttons'><i class='fas fa-file-code'></i></a></div></li>", fileLink, file.Name(), url, url, info, jsonLink)
 		}
 	}
@@ -309,9 +313,12 @@ func main() {
 	}
 
 	http.Handle("/static/", http.StripPrefix("/static", http.FileServer(http.Dir("static"))))
-	http.HandleFunc("/", projectHandler)
-	http.HandleFunc("/file", fileHandler)
-	http.HandleFunc("/jsonfile", jsonFileHandler)
+	r := mux.NewRouter()
+	r.HandleFunc("/", projectHandler)
+	r.HandleFunc("/p/{project_json_name}", projectHandler)
+	r.HandleFunc("/f/{project_json_name}/{relativePath:.*}", fileHandler)
+	r.HandleFunc("/j/{project_json_name}/{relativePath:.*}", jsonFileHandler)
+	http.Handle("/", r)
 
 	fmt.Println("Server is running on http://localhost:" + generalSettings.ServerPort)
 	http.ListenAndServe(":"+generalSettings.ServerPort, nil)
