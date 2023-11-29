@@ -72,6 +72,8 @@ The project_url includes the host and the port which can be accessed from the In
 5. Click on a file name to view its content in a new window.
 6. Use the copy icons to copy the file URL or info to the clipboard.
 7. With any scraper plugin you prefer, paste the URL in the prompt.
+8. (Optional) Use the Chrome extension ChatGPT Helper together to level up productivity
+https://chromewebstore.google.com/detail/chatgpt-helper/pjaiffleeblodclagbgflpnmighceibl?hl=en
 
 ## Customization
 - Customize the appearance by modifying the static/style.css file.
