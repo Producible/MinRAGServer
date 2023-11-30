@@ -3,7 +3,11 @@
 
 The MinFileServer is a Go-based web application that provides a user-friendly interface to navigate through project directories and view file contents. It's designed to assist ChatGPT in reading files from URLs, with the support of scraping plugins. The application allows users quickly to browse through different projects, expand/collapse directories, and view file contents in a new window.
 
-![image](https://github.com/greatwhiz/MinFileServer/assets/35230556/6e70a6f5-482b-49b3-b3cd-571e73005564)
+<img width="600" alt="image_2023-11-29_13-45-03" src="https://github.com/greatwhiz/MinFileServer/assets/35230556/6e70a6f5-482b-49b3-b3cd-571e73005564">
+
+<img width="600" alt="image_2023-11-29_16-45-03" src="https://github.com/greatwhiz/MinFileServer/assets/35230556/1c6ede8b-8833-40f6-95d5-d53c3e32726b">
+
+<img width="600" alt="image_2023-11-29_16-47-06" src="https://github.com/greatwhiz/MinFileServer/assets/35230556/b4f21a43-5d78-4420-84ca-e1cfa0e8982c">
 
 And strongly recommend using the Chrome extension ChatGPT Helper together to level up productivity.
 https://chromewebstore.google.com/detail/chatgpt-helper/pjaiffleeblodclagbgflpnmighceibl?hl=en
