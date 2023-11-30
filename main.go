@@ -286,7 +286,7 @@ func writeDirectory(w http.ResponseWriter, path string, rootPath string, project
 			relativePath := strings.TrimPrefix(filepath.Join(path, file.Name()), rootPath)
 			relativePath = filepath.ToSlash(relativePath)
 
-			fileLink := fmt.Sprintf("f/%s/%s", project, relativePath)
+			fileLink := fmt.Sprintf("f/%s%s", project, relativePath)
 			url := fmt.Sprintf("%s/%s", selectedConfig.ProjectURL, fileLink)
 			info := fmt.Sprintf("%s: %s", file.Name(), url)
 			jsonLink := fmt.Sprintf("j/%s/%s", project, relativePath)
