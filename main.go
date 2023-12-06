@@ -286,11 +286,11 @@ func writeDirectory(w http.ResponseWriter, path string, rootPath string, project
 			relativePath := strings.TrimPrefix(filepath.Join(path, file.Name()), rootPath)
 			relativePath = filepath.ToSlash(relativePath)
 
-			fileLink := fmt.Sprintf("f/%s%s", project, relativePath)
+			fileLink := fmt.Sprintf("f/%s/%s", project, relativePath)
 			url := fmt.Sprintf("%s/%s", selectedConfig.ProjectURL, fileLink)
 			info := fmt.Sprintf("%s: %s", file.Name(), url)
 			jsonLink := fmt.Sprintf("j/%s/%s", project, relativePath)
-			fmt.Fprintf(w, "<li><div class='item'><a href='%s' target='_blank'>%s</a> <a href='%s' target='_blank' class='buttons'><i class='fas fa-external-link-alt'></i></a> <button class='copy-button buttons' data-url='%s'><i class='fas fa-copy'></i></button> <button class='copy-button-info buttons' data-info='%s'><i class='fas fa-copy'></i></button> <a href='%s' target='_blank' class='buttons'><i class='fas fa-file-code'></i></a></div></li>", fileLink, file.Name(), url, url, info, jsonLink)
+			fmt.Fprintf(w, "<li><div class='item'><a href='/%s' target='_blank'>%s</a> <a href='%s' target='_blank' class='buttons'><i class='fas fa-external-link-alt'></i></a> <button class='copy-button buttons' data-url='%s'><i class='fas fa-copy'></i></button> <button class='copy-button-info buttons' data-info='%s'><i class='fas fa-copy'></i></button> <a href='%s' target='_blank' class='buttons'><i class='fas fa-file-code'></i></a></div></li>", fileLink, file.Name(), url, url, info, jsonLink)
 		}
 	}
 }
