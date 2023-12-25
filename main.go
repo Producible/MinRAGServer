@@ -145,7 +145,7 @@ func projectHandler(w http.ResponseWriter, r *http.Request) {
 </html>`)
 }
 
-func fileHandler(w http.ResponseWriter, r *http.Request) {
+func fileViewHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	project := vars["project_json_name"]
 	path := vars["relativePath"]
@@ -175,6 +175,32 @@ func fileHandler(w http.ResponseWriter, r *http.Request) {
 <pre>`+string(data)+`</pre>
 </body>
 </html>`)
+}
+
+func fileHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	project := vars["project_json_name"]
+	path := vars["relativePath"]
+
+	if project == "" || configs[project+".json"].ProjectName == "" {
+		http.Error(w, "Invalid project", http.StatusBadRequest)
+		return
+	}
+
+	selectedConfig = configs[project+".json"]
+	fullPath := filepath.Join(selectedConfig.RootPath, path)
+
+	data, err := ioutil.ReadFile(fullPath)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Set the content type to plain text with UTF-8 charset
+	w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
+
+	// Write the file content as plain text
+	w.Write(data)
 }
 
 func jsonFileHandler(w http.ResponseWriter, r *http.Request) {
@@ -287,10 +313,12 @@ func writeDirectory(w http.ResponseWriter, path string, rootPath string, project
 			relativePath = filepath.ToSlash(relativePath)
 
 			fileLink := fmt.Sprintf("f/%s/%s", project, relativePath)
+			fileViewLink := fmt.Sprintf("v/%s/%s", project, relativePath)
+
 			url := fmt.Sprintf("%s/%s", selectedConfig.ProjectURL, fileLink)
 			info := fmt.Sprintf("%s: %s", file.Name(), url)
 			jsonLink := fmt.Sprintf("j/%s/%s", project, relativePath)
-			fmt.Fprintf(w, "<li><div class='item'><a href='/%s' target='_blank'>%s</a> <a href='%s' target='_blank' class='buttons'><i class='fas fa-external-link-alt'></i></a> <button class='copy-button buttons' data-url='%s'><i class='fas fa-copy'></i></button> <button class='copy-button-info buttons' data-info='%s'><i class='fas fa-copy'></i></button> <a href='%s' target='_blank' class='buttons'><i class='fas fa-file-code'></i></a></div></li>", fileLink, file.Name(), url, url, info, jsonLink)
+			fmt.Fprintf(w, "<li><div class='item'><a href='/%s' target='_blank'>%s</a> <a href='%s' target='_blank' class='buttons'><i class='fas fa-external-link-alt'></i></a> <button class='copy-button buttons' data-url='%s'><i class='fas fa-copy'></i></button> <button class='copy-button-info buttons' data-info='%s'><i class='fas fa-copy'></i></button> <a href='%s' target='_blank' class='buttons'><i class='fas fa-file-code'></i></a></div></li>", fileViewLink, file.Name(), url, url, info, jsonLink)
 		}
 	}
 }
@@ -316,6 +344,7 @@ func main() {
 	r := mux.NewRouter()
 	r.HandleFunc("/", projectHandler)
 	r.HandleFunc("/p/{project_json_name}", projectHandler)
+	r.HandleFunc("/v/{project_json_name}/{relativePath:.*}", fileViewHandler)
 	r.HandleFunc("/f/{project_json_name}/{relativePath:.*}", fileHandler)
 	r.HandleFunc("/j/{project_json_name}/{relativePath:.*}", jsonFileHandler)
 	http.Handle("/", r)
