@@ -3,3 +3,5 @@
 ./.idea
 ./go.mod
 ./.gitignore
+/testproject/
+/go_build_MinFileServer

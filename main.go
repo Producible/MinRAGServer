@@ -115,6 +115,12 @@ func projectHandler(w http.ResponseWriter, r *http.Request) {
 	selectedConfig = configs[project+".json"]
 	dirPath := selectedConfig.RootPath
 
+	// Generate links for the root directory
+	dirStructureLink := fmt.Sprintf("/s/%s/", project)
+	dirContentsLink := fmt.Sprintf("/c/%s/", project)
+	dirStructureUrl := fmt.Sprintf("%s%s", selectedConfig.ProjectURL, dirStructureLink)
+	dirContentsUrl := fmt.Sprintf("%s%s", selectedConfig.ProjectURL, dirContentsLink)
+
 	fmt.Fprintln(w, `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -131,14 +137,22 @@ func projectHandler(w http.ResponseWriter, r *http.Request) {
 <a href="/" class="back-button"><i class="fas fa-arrow-left"></i> Projects</a>
 <h1>`+selectedConfig.ProjectName+`</h1>
 <div class="tree-view">
-<ul>
-<li class="root-item expanded"><div class='item'><span>`+selectedConfig.ProjectName+`</span></div><ul>`)
+        <ul>
+            <li class="root-item expanded">
+                <div class='item'>
+                    <span>`+selectedConfig.ProjectName+`</span>
+                    <a href='`+dirStructureLink+`' target='_blank' class='buttons'><i class='fas fa-sitemap' style='color:orange'></i></a>
+                    <a href='`+dirContentsLink+`' target='_blank' class='buttons'><i class='fas fa-file-code' style='color:#6495ED'></i></a>
+                    <button class='copy-button buttons' data-url='`+dirStructureUrl+`'><i class='fas fa-copy' style='color:#20B2AA'></i></button>
+                    <button class='copy-button buttons' data-url='`+dirContentsUrl+`'><i class='fas fa-copy' style='color:green'></i></button>
+                </div>
+                <ul>`)
 
 	writeDirectory(w, dirPath, dirPath, project)
 
-	fmt.Fprintln(w, `</ul></li>  <!-- Updated line -->
-</ul>
-</div>
+	fmt.Fprintln(w, `</ul></li>
+        </ul>
+    </div>
 <script src="/static/script.js"></script>
 <script src="/static/clipboard.js"></script>
 </body>
@@ -244,6 +258,147 @@ func jsonFileHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
+func dirStructureHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	project := vars["project_json_name"]
+	path := vars["relativePath"]
+
+	if project == "" || configs[project+".json"].ProjectName == "" {
+		http.Error(w, "Invalid project", http.StatusBadRequest)
+		return
+	}
+
+	selectedConfig = configs[project+".json"]
+	fullPath := filepath.Join(selectedConfig.RootPath, path)
+
+	// Get the configurations from the selected project or from general settings
+	inclusiveExtensions := strings.Split(selectedConfig.InclusiveExtensions, ",")
+	if inclusiveExtensions[0] == "" {
+		inclusiveExtensions = strings.Split(generalSettings.InclusiveExtensions, ",")
+	}
+	exclusiveExtensions := strings.Split(selectedConfig.ExclusiveExtensions, ",")
+	if exclusiveExtensions[0] == "" {
+		exclusiveExtensions = strings.Split(generalSettings.ExclusiveExtensions, ",")
+	}
+	exclusiveFolders := strings.Split(selectedConfig.ExclusiveFolders, ",")
+	if exclusiveFolders[0] == "" {
+		exclusiveFolders = strings.Split(generalSettings.ExclusiveFolders, ",")
+	}
+
+	var buildDirStructure func(string, string, int) string
+	buildDirStructure = func(currentPath, relativePath string, level int) string {
+		files, err := ioutil.ReadDir(currentPath)
+		if err != nil {
+			return "Error reading directory: " + err.Error() + "\n"
+		}
+
+		var structure string
+		indent := strings.Repeat("  ", level)
+		for _, file := range files {
+			fileName := file.Name()
+			if file.IsDir() {
+				if contains(exclusiveFolders, fileName) {
+					continue
+				}
+				dirRelativePath := filepath.Join(relativePath, fileName)
+				structure += fmt.Sprintf("%s[/%s]\n", indent, dirRelativePath)
+				structure += buildDirStructure(filepath.Join(currentPath, fileName), dirRelativePath, level+1)
+			} else {
+				ext := filepath.Ext(fileName)
+				if len(ext) > 0 {
+					ext = ext[1:] // Remove the leading "."
+				}
+				if (len(inclusiveExtensions) == 0 || inclusiveExtensions[0] == "*" || contains(inclusiveExtensions, ext)) &&
+					(len(exclusiveExtensions) == 0 || !contains(exclusiveExtensions, ext)) {
+					fileRelativePath := filepath.Join(relativePath, fileName)
+					structure += fmt.Sprintf("%s/%s\n", indent, fileRelativePath)
+				}
+			}
+		}
+		return structure
+	}
+
+	w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
+	w.Write([]byte(buildDirStructure(fullPath, path, 0)))
+}
+
+func dirContentsHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	project := vars["project_json_name"]
+	path := vars["relativePath"]
+
+	if project == "" || configs[project+".json"].ProjectName == "" {
+		http.Error(w, "Invalid project", http.StatusBadRequest)
+		return
+	}
+
+	selectedConfig = configs[project+".json"]
+	fullPath := filepath.Join(selectedConfig.RootPath, path)
+
+	// Get the configurations from the selected project or from general settings
+	inclusiveExtensions := strings.Split(selectedConfig.InclusiveExtensions, ",")
+	if inclusiveExtensions[0] == "" {
+		inclusiveExtensions = strings.Split(generalSettings.InclusiveExtensions, ",")
+	}
+	exclusiveExtensions := strings.Split(selectedConfig.ExclusiveExtensions, ",")
+	if exclusiveExtensions[0] == "" {
+		exclusiveExtensions = strings.Split(generalSettings.ExclusiveExtensions, ",")
+	}
+	exclusiveFolders := strings.Split(selectedConfig.ExclusiveFolders, ",")
+	if exclusiveFolders[0] == "" {
+		exclusiveFolders = strings.Split(generalSettings.ExclusiveFolders, ",")
+	}
+
+	var readDirContents func(string, string) (string, error)
+	readDirContents = func(currentPath, relativePath string) (string, error) {
+		var contents string
+		files, err := ioutil.ReadDir(currentPath)
+		if err != nil {
+			return "", err
+		}
+
+		for _, file := range files {
+			fileName := file.Name()
+			filePath := filepath.Join(currentPath, fileName)
+			fileRelativePath := filepath.Join(relativePath, fileName)
+
+			if file.IsDir() {
+				if contains(exclusiveFolders, fileName) {
+					continue
+				}
+				dirContents, err := readDirContents(filePath, fileRelativePath)
+				if err != nil {
+					return "", err
+				}
+				contents += dirContents
+			} else {
+				ext := filepath.Ext(fileName)
+				if len(ext) > 0 {
+					ext = ext[1:] // Remove the leading "."
+				}
+				if (len(inclusiveExtensions) == 0 || inclusiveExtensions[0] == "*" || contains(inclusiveExtensions, ext)) &&
+					(len(exclusiveExtensions) == 0 || !contains(exclusiveExtensions, ext)) {
+					fileData, err := ioutil.ReadFile(filePath)
+					if err != nil {
+						return "", err
+					}
+					contents += fmt.Sprintf("---------------\nFile: /%s:\n\n%s\n\n", fileRelativePath, string(fileData))
+				}
+			}
+		}
+		return contents, nil
+	}
+
+	dirContents, err := readDirContents(fullPath, path)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
+	w.Write([]byte(dirContents))
+}
+
 func writeDirectory(w http.ResponseWriter, path string, rootPath string, project string) {
 	files, err := ioutil.ReadDir(path)
 	if err != nil {
@@ -291,8 +446,14 @@ func writeDirectory(w http.ResponseWriter, path string, rootPath string, project
 		if contains(exclusiveFolders, dir.Name()) {
 			continue
 		}
+		relativePath := strings.TrimPrefix(path, rootPath)
+		relativePath = filepath.ToSlash(relativePath)
+		dirStructureLink := fmt.Sprintf("/s/%s%s", project, filepath.Join(relativePath, dir.Name()))
+		dirContentsLink := fmt.Sprintf("/c/%s%s", project, filepath.Join(relativePath, dir.Name()))
+		dirStructureUrl := fmt.Sprintf("%s%s", selectedConfig.ProjectURL, dirStructureLink)
+		dirContentsUrl := fmt.Sprintf("%s%s", selectedConfig.ProjectURL, dirContentsLink)
 
-		fmt.Fprintf(w, "<li><div class='item'><span>%s</span></div><ul>", dir.Name())
+		fmt.Fprintf(w, "<li><div class='item'><span>%s</span> <a href='%s' target='_blank' class='buttons'><i class='fas fa-sitemap' style='color:orange'></i></a> <a href='%s' target='_blank' class='buttons'><i class='fas fa-file-code' style='color:#6495ED'></i></a> <button class='copy-button buttons' data-url='%s'><i class='fas fa-copy' style='color:#20B2AA'></i></button> <button class='copy-button buttons' data-url='%s'><i class='fas fa-copy' style='color:green'></i></button></div><ul>", dir.Name(), dirStructureLink, dirContentsLink, dirStructureUrl, dirContentsUrl)
 		writeDirectory(w, filepath.Join(path, dir.Name()), rootPath, project) // Recursive call
 		fmt.Fprintln(w, "</ul></li>")
 	}
@@ -312,13 +473,13 @@ func writeDirectory(w http.ResponseWriter, path string, rootPath string, project
 			relativePath := strings.TrimPrefix(filepath.Join(path, file.Name()), rootPath)
 			relativePath = filepath.ToSlash(relativePath)
 
-			fileLink := fmt.Sprintf("f/%s/%s", project, relativePath)
-			fileViewLink := fmt.Sprintf("v/%s/%s", project, relativePath)
+			fileLink := fmt.Sprintf("f/%s%s", project, relativePath)
+			fileViewLink := fmt.Sprintf("v/%s%s", project, relativePath)
 
 			url := fmt.Sprintf("%s/%s", selectedConfig.ProjectURL, fileLink)
 			info := fmt.Sprintf("%s: %s", file.Name(), url)
 			jsonLink := fmt.Sprintf("j/%s/%s", project, relativePath)
-			fmt.Fprintf(w, "<li><div class='item'><a href='/%s' target='_blank'>%s</a> <a href='%s' target='_blank' class='buttons'><i class='fas fa-external-link-alt'></i></a> <button class='copy-button buttons' data-url='%s'><i class='fas fa-copy'></i></button> <button class='copy-button-info buttons' data-info='%s'><i class='fas fa-copy'></i></button> <a href='%s' target='_blank' class='buttons'><i class='fas fa-file-code'></i></a></div></li>", fileViewLink, file.Name(), url, url, info, jsonLink)
+			fmt.Fprintf(w, "<li><div class='item'><a href='/%s' target='_blank'>%s</a> <a href='%s' target='_blank' class='buttons'><i class='fas fa-external-link-alt' style='color:orange'></i></a> <button class='copy-button buttons' data-url='%s'><i class='fas fa-copy' style='color:#20B2AA'></i></button> <button class='copy-button-info buttons' data-info='%s'><i class='fas fa-copy'></i></button> <a href='%s' target='_blank' class='buttons'><i class='fas fa-file-code' style='color:#87CEFA'></i></a></div></li>", fileViewLink, file.Name(), url, url, info, jsonLink)
 		}
 	}
 }
@@ -347,6 +508,8 @@ func main() {
 	r.HandleFunc("/v/{project_json_name}/{relativePath:.*}", fileViewHandler)
 	r.HandleFunc("/f/{project_json_name}/{relativePath:.*}", fileHandler)
 	r.HandleFunc("/j/{project_json_name}/{relativePath:.*}", jsonFileHandler)
+	r.HandleFunc("/s/{project_json_name}/{relativePath:.*}", dirStructureHandler)
+	r.HandleFunc("/c/{project_json_name}/{relativePath:.*}", dirContentsHandler)
 	http.Handle("/", r)
 
 	fmt.Println("Server is running on http://localhost:" + generalSettings.ServerPort)
