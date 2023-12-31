@@ -1,7 +1,7 @@
 
 # MinFileServer
 
-The MinFileServer is a Go-based web application that provides a user-friendly interface to navigate through project directories and view file contents. It's designed to assist ChatGPT in reading files from URLs, with the support of scraping plugins. The application allows users quickly to browse through different projects, expand/collapse directories, and view file contents in a new window.
+The MinFileServer is a Go-based web application with a user-friendly interface to navigate project directories and view file contents. It's designed to assist ChatGPT in reading files from URLs, with the support of scraping plugins. The application allows users quickly to browse through different projects, expand/collapse directories, and view file contents in a new window.
 
 <img width="600" alt="image_2023-11-29_13-45-03" src="https://github.com/greatwhiz/MinFileServer/assets/35230556/6e70a6f5-482b-49b3-b3cd-571e73005564">
 
@@ -9,13 +9,16 @@ The MinFileServer is a Go-based web application that provides a user-friendly in
 
 <img width="600" alt="image_2023-11-29_16-47-06" src="https://github.com/greatwhiz/MinFileServer/assets/35230556/b4f21a43-5d78-4420-84ca-e1cfa0e8982c">
 
-And strongly recommend using the Chrome extension ChatGPT Helper together to level up productivity.
+And strongly recommend using the Chrome extension ChatGPT Helper together to increase productivity.
 https://chromewebstore.google.com/detail/chatgpt-helper/pjaiffleeblodclagbgflpnmighceibl?hl=en
 
 ## Features
 - Display a list of projects configured in JSON files.
 - Navigate through directories and subdirectories of a project.
+- View the whole structure in a new window.
+- View all file contents in a new window.
 - View file contents in a new window.
+- Copy the structure URL and the structure content URL to the clipboard to paste in ChatGPT
 - Copy file URLs and info to the clipboard to paste in ChatGPT
 - Configure visibility settings such as showing/hiding hidden files, timestamping URLs, and filtering files and folders based on extensions or names.
 - Customize appearance through CSS and JavaScript.
@@ -63,7 +66,7 @@ GOOS=darwin GOARCH=amd64 go build
 ```
 {
     "project_name": "Project 1",
-    "root_path": "/path/to/project",
+    "root_path": "/absolute_path/to/project",
     "project_url": "http://external-domain:80"
 }
 ```
