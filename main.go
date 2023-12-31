@@ -295,6 +295,9 @@ func dirStructureHandler(w http.ResponseWriter, r *http.Request) {
 		var structure string
 		indent := strings.Repeat("  ", level)
 		for _, file := range files {
+			if !generalSettings.ShowHidden && strings.HasPrefix(file.Name(), ".") {
+				continue // Skip hidden files and directories
+			}
 			fileName := file.Name()
 			if file.IsDir() {
 				if contains(exclusiveFolders, fileName) {
@@ -358,6 +361,9 @@ func dirContentsHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		for _, file := range files {
+			if !generalSettings.ShowHidden && strings.HasPrefix(file.Name(), ".") {
+				continue // Skip hidden files and directories
+			}
 			fileName := file.Name()
 			filePath := filepath.Join(currentPath, fileName)
 			fileRelativePath := filepath.Join(relativePath, fileName)
@@ -448,8 +454,13 @@ func writeDirectory(w http.ResponseWriter, path string, rootPath string, project
 		}
 		relativePath := strings.TrimPrefix(path, rootPath)
 		relativePath = filepath.ToSlash(relativePath)
-		dirStructureLink := fmt.Sprintf("/s/%s%s", project, filepath.Join(relativePath, dir.Name()))
-		dirContentsLink := fmt.Sprintf("/c/%s%s", project, filepath.Join(relativePath, dir.Name()))
+		dirPath := filepath.Join(relativePath, dir.Name())
+
+		if !strings.HasPrefix(dirPath, "/") {
+			dirPath = fmt.Sprintf("/%s", dirPath)
+		}
+		dirStructureLink := fmt.Sprintf("/s/%s%s", project, dirPath)
+		dirContentsLink := fmt.Sprintf("/c/%s%s", project, dirPath)
 		dirStructureUrl := fmt.Sprintf("%s%s", selectedConfig.ProjectURL, dirStructureLink)
 		dirContentsUrl := fmt.Sprintf("%s%s", selectedConfig.ProjectURL, dirContentsLink)
 
