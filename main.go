@@ -32,6 +32,7 @@ type Config struct {
 	InclusiveExtensions string `json:"inclusive_extensions,omitempty"`
 	ExclusiveExtensions string `json:"exclusive_extensions,omitempty"`
 	ExclusiveFolders    string `json:"exclusive_folders,omitempty"`
+	ExclusiveFiles      string `json:"exclusive_files,omitempty"`
 }
 
 var configs map[string]Config
@@ -284,6 +285,7 @@ func dirStructureHandler(w http.ResponseWriter, r *http.Request) {
 	if exclusiveFolders[0] == "" {
 		exclusiveFolders = strings.Split(generalSettings.ExclusiveFolders, ",")
 	}
+	exclusiveFiles := strings.Split(selectedConfig.ExclusiveFiles, ",")
 
 	var buildDirStructure func(string, string, int) string
 	buildDirStructure = func(currentPath, relativePath string, level int) string {
@@ -299,11 +301,15 @@ func dirStructureHandler(w http.ResponseWriter, r *http.Request) {
 				continue // Skip hidden files and directories
 			}
 			fileName := file.Name()
+			if contains(exclusiveFiles, fileName) {
+				continue // Skip exclusive files
+			}
 			if file.IsDir() {
 				if contains(exclusiveFolders, fileName) {
 					continue
 				}
 				dirRelativePath := filepath.Join(relativePath, fileName)
+				dirRelativePath = filepath.ToSlash(dirRelativePath)
 				structure += fmt.Sprintf("%s[/%s]\n", indent, dirRelativePath)
 				structure += buildDirStructure(filepath.Join(currentPath, fileName), dirRelativePath, level+1)
 			} else {
@@ -314,6 +320,7 @@ func dirStructureHandler(w http.ResponseWriter, r *http.Request) {
 				if (len(inclusiveExtensions) == 0 || inclusiveExtensions[0] == "*" || contains(inclusiveExtensions, ext)) &&
 					(len(exclusiveExtensions) == 0 || !contains(exclusiveExtensions, ext)) {
 					fileRelativePath := filepath.Join(relativePath, fileName)
+					fileRelativePath = filepath.ToSlash(fileRelativePath)
 					structure += fmt.Sprintf("%s/%s\n", indent, fileRelativePath)
 				}
 			}
@@ -351,6 +358,7 @@ func dirContentsHandler(w http.ResponseWriter, r *http.Request) {
 	if exclusiveFolders[0] == "" {
 		exclusiveFolders = strings.Split(generalSettings.ExclusiveFolders, ",")
 	}
+	exclusiveFiles := strings.Split(selectedConfig.ExclusiveFiles, ",")
 
 	var readDirContents func(string, string) (string, error)
 	readDirContents = func(currentPath, relativePath string) (string, error) {
@@ -365,9 +373,12 @@ func dirContentsHandler(w http.ResponseWriter, r *http.Request) {
 				continue // Skip hidden files and directories
 			}
 			fileName := file.Name()
+			if contains(exclusiveFiles, fileName) {
+				continue // Skip exclusive files
+			}
 			filePath := filepath.Join(currentPath, fileName)
 			fileRelativePath := filepath.Join(relativePath, fileName)
-
+			fileRelativePath = filepath.ToSlash(fileRelativePath)
 			if file.IsDir() {
 				if contains(exclusiveFolders, fileName) {
 					continue
@@ -446,6 +457,8 @@ func writeDirectory(w http.ResponseWriter, path string, rootPath string, project
 		exclusiveFolders = strings.Split(generalSettings.ExclusiveFolders, ",")
 	}
 
+	exclusiveFiles := strings.Split(selectedConfig.ExclusiveFiles, ",")
+
 	// Inside the writeDirectory function
 	for _, dir := range dirs {
 		// Skip the folder if it's in the exclusive_folders list
@@ -471,7 +484,9 @@ func writeDirectory(w http.ResponseWriter, path string, rootPath string, project
 
 	// Process files
 	for _, file := range filesOnly {
-
+		if contains(exclusiveFiles, file.Name()) {
+			continue // Skip exclusive files
+		}
 		ext := filepath.Ext(file.Name()) // Get file extension without the leading "."
 
 		// when ext not empty, remove "."

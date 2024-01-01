@@ -4,5 +4,6 @@
   "project_url": "http://example.com",
   "inclusive_extensions": "js,ts,tsx,json,css,cs,html,dart",
   "exclusive_extensions": "",
-  "exclusive_folders": "linux,macos,windows,build"
+  "exclusive_folders": "linux,macos,windows,build",
+  "exclusive_files": ""
 }
