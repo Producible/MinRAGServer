@@ -67,7 +67,11 @@ GOOS=darwin GOARCH=amd64 go build
 {
     "project_name": "Project 1",
     "root_path": "/absolute_path/to/project",
-    "project_url": "http://external-domain:80"
+    "project_url": "http://external-domain:80",
+    "inclusive_extensions": "js,ts,tsx,json,css,cs,html,dart",
+    "exclusive_extensions": "",
+    "exclusive_folders": "linux,macos,windows,build",
+    "exclusive_files": ""
 }
 ```
 The project_url includes the host and the port which can be accessed from the Internet. You can use dynamic DNS and port mapping to your local network.
