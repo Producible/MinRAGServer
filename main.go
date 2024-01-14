@@ -474,8 +474,8 @@ func writeDirectory(w http.ResponseWriter, path string, rootPath string, project
 		}
 		dirStructureLink := cleanPathUrl(fmt.Sprintf("/s/%s%s", project, dirPath))
 		dirContentsLink := cleanPathUrl(fmt.Sprintf("/c/%s%s", project, dirPath))
-		dirStructureUrl := cleanPathUrl(fmt.Sprintf("%s%s", selectedConfig.ProjectURL, dirStructureLink))
-		dirContentsUrl := cleanPathUrl(fmt.Sprintf("%s%s", selectedConfig.ProjectURL, dirContentsLink))
+		dirStructureUrl := fmt.Sprintf("%s%s", selectedConfig.ProjectURL, dirStructureLink)
+		dirContentsUrl := fmt.Sprintf("%s%s", selectedConfig.ProjectURL, dirContentsLink)
 
 		fmt.Fprintf(w, `<li><div class='item'><span>%s</span> 
 			<a href='%s' target='_blank' class='buttons'><i class='fas fa-sitemap' style='color:orange'></i></a>
