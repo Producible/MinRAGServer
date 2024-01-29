@@ -1,7 +1,7 @@
 
-# MinFileServer
+# MinRAGServer
 
-The MinFileServer is a Go-based web application with a user-friendly interface to navigate project directories and view file contents. It's designed to assist ChatGPT in reading files from URLs, with the support of scraping plugins. The application allows users quickly to browse through different projects, expand/collapse directories, and view file contents in a new window.
+MinRAGServer is a Go-based web application designed to enhance the capabilities of Retrieval Augmented Generation (RAG) models like ChatGPT. With its user-friendly interface, MinRAGServer simplifies the process of navigating project directories and viewing file contents, making it an invaluable tool for feeding content to ChatGPT, especially when used with scraping plugins. Users can quickly browse through different projects, expand or collapse directories, and view file contents in new windows, streamlining the data retrieval process for RAG models.
 
 <img width="600" alt="image_2023-11-29_13-45-03" src="https://github.com/greatwhiz/MinFileServer/assets/35230556/6e70a6f5-482b-49b3-b3cd-571e73005564">
 
@@ -9,28 +9,24 @@ The MinFileServer is a Go-based web application with a user-friendly interface t
 
 <img width="600" alt="image_2023-11-29_16-47-06" src="https://github.com/greatwhiz/MinFileServer/assets/35230556/b4f21a43-5d78-4420-84ca-e1cfa0e8982c">
 
-And strongly recommend using the Chrome extension ChatGPT Helper together to increase productivity.
+We also highly recommend using the Chrome extension ChatGPT Helper alongside MinRAGServer to further increase productivity.
 https://chromewebstore.google.com/detail/chatgpt-helper/pjaiffleeblodclagbgflpnmighceibl?hl=en
 
 ## Features
-- Display a list of projects configured in JSON files.
-- Navigate through directories and subdirectories of a project.
-- View the whole structure in a new window.
-- View all file contents in a new window.
-- View file contents in a new window.
-- Copy the structure URL and the structure content URL to the clipboard to paste in ChatGPT
-- Copy file URLs and info to the clipboard to paste in ChatGPT
-- Configure visibility settings such as showing/hiding hidden files, timestamping URLs, and filtering files and folders based on extensions or names.
-- Customize appearance through CSS and JavaScript.
-- Supports scraping plugins for enhanced functionality.
+- Display and navigate a list of projects configured in JSON files.
+- View the entire structure and all file contents of a project in new windows.
+- Copy structure URLs and content URLs to the clipboard for use in ChatGPT.
+- Configure visibility settings, including show/hide hidden files, timestamp URLs, and filter files and folders based on extensions or names.
+- Customize appearance and add interactive features through CSS and JavaScript.
+- Support for scraping plugins to enhance RAG model functionality.
 
 ## Installation
 1. Ensure you have Go installed on your machine. You can download it from the official website.
 
 2. Clone this repository to your local machine.
 ```
-git clone https://github.com/greatwhiz/MinFileServer.git
-cd MinFileServer
+git clone https://github.com/greatwhiz/MinRAGServer.git
+cd MinRAGServer
 ```
 
 3. Build the project.
@@ -79,24 +75,24 @@ The project_url includes the host and the port which can be accessed from the In
 ## Usage
 1. Run the server:
 ```
-./MinFileServer
+./MinRAGServer
 ```
-2. Open your web browser and navigate to http://localhost:8080.
-3. Click on a project name to view its file tree.
-4. Navigate through the directories by clicking on the folder icons.
-5. Click on a file name to view its content in a new window.
-6. Use the copy icons to copy the file URL or info to the clipboard.
-7. With any scraper plugin you prefer, paste the URL in the prompt.
-8. (Optional) Use the Chrome extension ChatGPT Helper together to level up productivity
+2. Open a web browser and navigate to http://localhost:8080.
+3. Map an external port on your router if necessary
+4. Click on a project name to view its file tree.
+5. Navigate through directories and view file contents.
+6. Copy file URLs and info to the clipboard.
+7. Use a scraper plugin to feed content to ChatGPT.
+8. (Optional) Enhance productivity with the ChatGPT Helper Chrome extension.
 https://chromewebstore.google.com/detail/chatgpt-helper/pjaiffleeblodclagbgflpnmighceibl?hl=en
 
 ## Customization
-- Customize the appearance by modifying the static/style.css file.
-- Add interactive features by modifying the static/script.js file.
-- The static/clipboard.js file handles the copy-to-clipboard functionality.
+- Modify static/style.css to customize the appearance.
+- Add features with static/script.js.
+- static/clipboard.js handles copy-to-clipboard functionality.
 
 ## Contributing
-Feel free to fork this repository, make changes, and open a pull request. Contributions are welcome!
+Contributions are welcome! Fork the repository, make changes, and open a pull request.
 
 ## License
-This project is licensed under the MIT License. See the LICENSE file for details.
+MinRAGServer is licensed under the MIT License. See the LICENSE file for details.
