@@ -1,4 +1,4 @@
-module MinFileServer
+module MinRAGServer
 
 go 1.20
 
