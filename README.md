@@ -1,15 +1,15 @@
-
-# MinRAGServer
-
-
-
+<p align="center">
+<img width="300" alt="image_2023-11-29_16-47-06" src="https://github.com/greatwhiz/MinRAGServer/assets/35230556/e646ca0a-3875-4467-b7ff-1f5c9ade223b">
+</p>
 MinRAGServer is a Go-based web application designed to enhance the capabilities of Retrieval Augmented Generation (RAG) models like ChatGPT. With its user-friendly interface, MinRAGServer simplifies the process of navigating project directories and viewing file contents, making it an invaluable tool for feeding content to ChatGPT, especially when used with scraping plugins. Users can quickly browse through different projects, expand or collapse directories, and view file contents in new windows, streamlining the data retrieval process for RAG models.
 
+<p align="center">
 <img width="600" alt="image_2023-11-29_13-45-03" src="https://github.com/greatwhiz/MinRAGServer/assets/35230556/6e70a6f5-482b-49b3-b3cd-571e73005564">
-
+</p><p align="center">
 <img width="600" alt="image_2023-11-29_16-45-03" src="https://github.com/greatwhiz/MinRAGServer/assets/35230556/1c6ede8b-8833-40f6-95d5-d53c3e32726b">
-
+</p><p align="center">
 <img width="600" alt="image_2023-11-29_16-47-06" src="https://github.com/greatwhiz/MinRAGServer/assets/35230556/b4f21a43-5d78-4420-84ca-e1cfa0e8982c">
+</p>
 
 We also highly recommend using the Chrome extension ChatGPT Helper alongside MinRAGServer to further increase productivity.
 https://chromewebstore.google.com/detail/chatgpt-helper/pjaiffleeblodclagbgflpnmighceibl?hl=en
