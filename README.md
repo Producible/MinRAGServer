@@ -11,7 +11,7 @@ MinRAGServer is a Go-based web application designed to enhance the capabilities 
 <img width="600" alt="image_2023-11-29_16-47-06" src="https://github.com/greatwhiz/MinRAGServer/assets/35230556/b4f21a43-5d78-4420-84ca-e1cfa0e8982c">
 </p>
 <br/>
-We also highly recommend using the Chrome extension ChatGPT Helper alongside MinRAGServer to further increase productivity.
+We also highly recommend using the Chrome extension ChatGPT Helper alongside MinRAGServer to increase productivity further.
 https://chromewebstore.google.com/detail/chatgpt-helper/pjaiffleeblodclagbgflpnmighceibl?hl=en
 
 ## Features
@@ -48,7 +48,7 @@ GOOS=darwin GOARCH=amd64 go build
 ```
 
 ## Configuration
-1. Configure the general settings in settings.json:
+1. Configure the general settings in settings.json, and change the inclusive_extensions, exclusive_extensions, exclusive_folders (* means ignoring the parent path, like *build or bin/data):
 ```
 {
   "server_port": "8080",
@@ -57,7 +57,7 @@ GOOS=darwin GOARCH=amd64 go build
   "time_stamp": true,
   "inclusive_extensions": "js,ts,tsx,json,css,html",
   "exclusive_extensions": "",
-  "exclusive_folders": "node_modules,build,dist,coverage"  
+  "exclusive_folders":  "*build,bin/data"  
 }
 ```
 2. Create a folder named config and inside it, create a JSON file for each project you want to display. The JSON file should have the following structure:
@@ -68,10 +68,11 @@ GOOS=darwin GOARCH=amd64 go build
     "project_url": "http://external-domain:80",
     "inclusive_extensions": "js,ts,tsx,json,css,cs,html,dart",
     "exclusive_extensions": "",
-    "exclusive_folders": "linux,macos,windows,build",
+    "exclusive_folders": "*build,bin/data",
     "exclusive_files": ""
 }
 ```
+Change the inclusive_extensions, exclusive_extensions, exclusive_folders (* means ignoring the parent path).
 The project_url includes the host and the port which can be accessed from the Internet. You can use dynamic DNS and port mapping to your local network.
 
 ## Usage
