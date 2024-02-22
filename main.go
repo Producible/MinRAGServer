@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
-	"io/ioutil"
 	"net"
 	"net/http"
 	"os"
@@ -59,7 +58,7 @@ func isLocalIP(ip string) bool {
 
 func loadConfigs() error {
 	// Load general settings
-	settingsData, err := ioutil.ReadFile("settings.json")
+	settingsData, err := os.ReadFile("settings.json")
 	if err != nil {
 		return err
 	}
@@ -69,7 +68,7 @@ func loadConfigs() error {
 	}
 
 	configs = make(map[string]Config)
-	files, err := ioutil.ReadDir("config")
+	files, err := os.ReadDir("config")
 	if err != nil {
 		return err
 	}
@@ -142,10 +141,10 @@ func projectHandler(w http.ResponseWriter, r *http.Request) {
             <li class="root-item expanded">
                 <div class='item'>
                     <span>`+selectedConfig.ProjectName+`</span>
-                    <a href='`+dirStructureLink+`' target='_blank' class='buttons'><i class='fas fa-sitemap' style='color:orange'></i></a>
-                    <a href='`+dirContentsLink+`' target='_blank' class='buttons'><i class='fas fa-file-code' style='color:#6495ED'></i></a>
-                    <button class='copy-button buttons' data-url='`+dirStructureUrl+`'><i class='fas fa-copy' style='color:#20B2AA'></i></button>
-                    <button class='copy-button buttons' data-url='`+dirContentsUrl+`'><i class='fas fa-copy' style='color:green'></i></button>
+                    <a href='`+dirStructureLink+`' target='_blank' class='buttons' title="Display whole structure"><i class='fas fa-sitemap' style='color:orange'></i></a>
+                    <a href='`+dirContentsLink+`' target='_blank' class='buttons' title="Display all file content"><i class='fas fa-file-code' style='color:#6495ED'></i></a>
+                    <button class='copy-button buttons' data-url='`+dirStructureUrl+`' title="Copy structure URL"><i class='fas fa-copy' style='color:#20B2AA'></i></button>
+                    <button class='copy-button buttons' data-url='`+dirContentsUrl+`' title="Copy file-content URL"><i class='fas fa-copy' style='color:green'></i></button>
                 </div>
                 <ul>`)
 
@@ -173,7 +172,7 @@ func fileViewHandler(w http.ResponseWriter, r *http.Request) {
 	selectedConfig = configs[project+".json"]
 	fullPath := filepath.Join(selectedConfig.RootPath, path)
 
-	data, err := ioutil.ReadFile(fullPath)
+	data, err := os.ReadFile(fullPath)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -205,7 +204,7 @@ func fileHandler(w http.ResponseWriter, r *http.Request) {
 	selectedConfig = configs[project+".json"]
 	fullPath := filepath.Join(selectedConfig.RootPath, path)
 
-	data, err := ioutil.ReadFile(fullPath)
+	data, err := os.ReadFile(fullPath)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -231,7 +230,7 @@ func jsonFileHandler(w http.ResponseWriter, r *http.Request) {
 	selectedConfig = configs[project+".json"]
 	fullPath := filepath.Join(selectedConfig.RootPath, path)
 
-	data, err := ioutil.ReadFile(fullPath)
+	data, err := os.ReadFile(fullPath)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -250,9 +249,9 @@ func jsonFileHandler(w http.ResponseWriter, r *http.Request) {
 	relativePath := "/" + filepath.ToSlash(path) // Ensure path starts with "/"
 
 	response := map[string]interface{}{
-		"file": fileName,
-		"path": relativePath,
-		"data": jsonData,
+		"file":                     fileName,
+		"path":                     relativePath,
+		"content-with-line-number": jsonData,
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -289,7 +288,7 @@ func dirStructureHandler(w http.ResponseWriter, r *http.Request) {
 
 	var buildDirStructure func(string, string, int) string
 	buildDirStructure = func(currentPath, relativePath string, level int) string {
-		files, err := ioutil.ReadDir(currentPath)
+		files, err := os.ReadDir(currentPath)
 		if err != nil {
 			return "Error reading directory: " + err.Error() + "\n"
 		}
@@ -305,11 +304,15 @@ func dirStructureHandler(w http.ResponseWriter, r *http.Request) {
 				continue // Skip exclusive files
 			}
 			if file.IsDir() {
-				if contains(exclusiveFolders, fileName) {
+				dirRelativePath := filepath.Join(relativePath, fileName)
+				dirRelativePath = filepath.ToSlash(filepath.Clean(dirRelativePath))
+				fileRelativePathToCompare := dirRelativePath
+				if !strings.HasPrefix(fileRelativePathToCompare, "/") {
+					fileRelativePathToCompare = fmt.Sprintf("/%s", fileRelativePathToCompare)
+				}
+				if checkExclusiveDir(exclusiveFolders, fileRelativePathToCompare, fileName) {
 					continue
 				}
-				dirRelativePath := filepath.Join(relativePath, fileName)
-				dirRelativePath = filepath.ToSlash(dirRelativePath)
 				structure += fmt.Sprintf("%s[/%s]\n", indent, dirRelativePath)
 				structure += buildDirStructure(filepath.Join(currentPath, fileName), dirRelativePath, level+1)
 			} else {
@@ -363,7 +366,7 @@ func dirContentsHandler(w http.ResponseWriter, r *http.Request) {
 	var readDirContents func(string, string) (string, error)
 	readDirContents = func(currentPath, relativePath string) (string, error) {
 		var contents string
-		files, err := ioutil.ReadDir(currentPath)
+		files, err := os.ReadDir(currentPath)
 		if err != nil {
 			return "", err
 		}
@@ -378,9 +381,13 @@ func dirContentsHandler(w http.ResponseWriter, r *http.Request) {
 			}
 			filePath := filepath.Join(currentPath, fileName)
 			fileRelativePath := filepath.Join(relativePath, fileName)
-			fileRelativePath = filepath.ToSlash(fileRelativePath)
+			fileRelativePath = filepath.ToSlash(filepath.Clean(fileRelativePath))
 			if file.IsDir() {
-				if contains(exclusiveFolders, fileName) {
+				fileRelativePathToCompare := fileRelativePath
+				if !strings.HasPrefix(fileRelativePathToCompare, "/") {
+					fileRelativePathToCompare = fmt.Sprintf("/%s", fileRelativePathToCompare)
+				}
+				if checkExclusiveDir(exclusiveFolders, fileRelativePathToCompare, fileName) {
 					continue
 				}
 				dirContents, err := readDirContents(filePath, fileRelativePath)
@@ -395,7 +402,7 @@ func dirContentsHandler(w http.ResponseWriter, r *http.Request) {
 				}
 				if (len(inclusiveExtensions) == 0 || inclusiveExtensions[0] == "*" || contains(inclusiveExtensions, ext)) &&
 					(len(exclusiveExtensions) == 0 || !contains(exclusiveExtensions, ext)) {
-					fileData, err := ioutil.ReadFile(filePath)
+					fileData, err := os.ReadFile(filePath)
 					if err != nil {
 						return "", err
 					}
@@ -417,15 +424,15 @@ func dirContentsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func writeDirectory(w http.ResponseWriter, path string, rootPath string, project string) {
-	files, err := ioutil.ReadDir(path)
+	files, err := os.ReadDir(path)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	// Separate directories and files
-	var dirs []os.FileInfo
-	var filesOnly []os.FileInfo
+	var dirs []os.DirEntry
+	var filesOnly []os.DirEntry
 	for _, file := range files {
 		// Use the show_hidden property from the general settings
 		if !generalSettings.ShowHidden && strings.HasPrefix(file.Name(), ".") {
@@ -461,27 +468,24 @@ func writeDirectory(w http.ResponseWriter, path string, rootPath string, project
 
 	// Inside the writeDirectory function
 	for _, dir := range dirs {
-		// Skip the folder if it's in the exclusive_folders list
-		if contains(exclusiveFolders, dir.Name()) {
-			continue
-		}
 		relativePath := strings.TrimPrefix(path, rootPath)
-		relativePath = filepath.ToSlash(relativePath)
-		dirPath := filepath.Join(relativePath, dir.Name())
-
+		dirPath := filepath.ToSlash(filepath.Clean(filepath.Join(relativePath, dir.Name())))
 		if !strings.HasPrefix(dirPath, "/") {
 			dirPath = fmt.Sprintf("/%s", dirPath)
 		}
-		dirStructureLink := cleanPathUrl(fmt.Sprintf("/s/%s%s", project, dirPath))
-		dirContentsLink := cleanPathUrl(fmt.Sprintf("/c/%s%s", project, dirPath))
+		if checkExclusiveDir(exclusiveFolders, dirPath, dir.Name()) {
+			continue
+		}
+		dirStructureLink := filepath.Clean(fmt.Sprintf("/s/%s%s", project, dirPath))
+		dirContentsLink := filepath.Clean(fmt.Sprintf("/c/%s%s", project, dirPath))
 		dirStructureUrl := fmt.Sprintf("%s%s", selectedConfig.ProjectURL, dirStructureLink)
 		dirContentsUrl := fmt.Sprintf("%s%s", selectedConfig.ProjectURL, dirContentsLink)
 
 		fmt.Fprintf(w, `<li><div class='item'><span>%s</span> 
-			<a href='%s' target='_blank' class='buttons'><i class='fas fa-sitemap' style='color:orange'></i></a>
-			<a href='%s' target='_blank' class='buttons'><i class='fas fa-file-code' style='color:#6495ED'></i></a>
-			<button class='copy-button buttons' data-url='%s'><i class='fas fa-copy' style='color:#20B2AA'></i></button>
-			<button class='copy-button buttons' data-url='%s'><i class='fas fa-copy' style='color:green'></i></button>
+			<a href='%s' target='_blank' class='buttons' title="Display structure in directory"><i class='fas fa-sitemap' style='color:orange'></i></a>
+			<a href='%s' target='_blank' class='buttons' title="Display file content in directory"><i class='fas fa-file-code' style='color:#6495ED'></i></a>
+			<button class='copy-button buttons' data-url='%s' title="Copy structure URL"><i class='fas fa-copy' style='color:#20B2AA'></i></button>
+			<button class='copy-button buttons' data-url='%s' title="Copy file-content URL"><i class='fas fa-copy' style='color:green'></i></button>
 		</div><ul>`, dir.Name(), dirStructureLink, dirContentsLink, dirStructureUrl, dirContentsUrl)
 		writeDirectory(w, filepath.Join(path, dir.Name()), rootPath, project) // Recursive call
 		fmt.Fprintln(w, "</ul></li>")
@@ -509,13 +513,13 @@ func writeDirectory(w http.ResponseWriter, path string, rootPath string, project
 
 			url := fmt.Sprintf("%s/%s", selectedConfig.ProjectURL, fileLink)
 			info := fmt.Sprintf("%s: %s", file.Name(), url)
-			jsonLink := fmt.Sprintf("j/%s/%s", project, relativePath)
+			jsonLink := fmt.Sprintf("%s/j/%s%s", selectedConfig.ProjectURL, project, relativePath)
 			fmt.Fprintf(w, `<li><div class='item'>
-				<a href='/%s' target='_blank'>%s</a>
-				<a href='%s' target='_blank' class='buttons'><i class='fas fa-external-link-alt' style='color:orange'></i></a>
-				<button class='copy-button buttons' data-url='%s'><i class='fas fa-copy' style='color:#20B2AA'></i></button>
-				<button class='copy-button-info buttons' data-info='%s'><i class='fas fa-copy'></i></button>
-				<a href='%s' target='_blank' class='buttons'><i class='fas fa-file-code' style='color:#87CEFA'></i></a>
+				<a href='/%s' target='_blank' title="Display in internal URL">%s</a>
+				<a href='%s' target='_blank' class='buttons' title="Display in external URL"><i class='fas fa-external-link-alt' style='color:orange'></i></a>
+				<button class='copy-button buttons' data-url='%s' title="Copy external URL"><i class='fas fa-copy' style='color:#20B2AA'></i></button>
+				<button class='copy-button-info buttons' data-info='%s' title="Copy external URL with path"><i class='fas fa-copy'></i></button>
+				<a href='%s' target='_blank' class='buttons' title="Display content in JSON"><i class='fas fa-file-code' style='color:#87CEFA'></i></a>
 			</div></li>`, fileViewLink, file.Name(), url, url, info, jsonLink)
 		}
 	}
@@ -531,8 +535,17 @@ func contains(slice []string, str string) bool {
 	return false
 }
 
-func cleanPathUrl(path string) string {
-	return strings.Replace(filepath.ToSlash(path), "//", "/", -1)
+func checkExclusiveDir(exclusiveFolders []string, relativePath string, dirName string) bool {
+	isExcluded := false
+	//if * match all dir contains the name
+	for _, exclusiveFolder := range exclusiveFolders {
+		if (strings.HasPrefix(exclusiveFolder, "*") && exclusiveFolder[1:] == dirName) ||
+			exclusiveFolder == relativePath[1:] {
+			isExcluded = true
+		}
+	}
+
+	return isExcluded
 }
 
 func main() {
