@@ -476,10 +476,10 @@ func writeDirectory(w http.ResponseWriter, path string, rootPath string, project
 		if checkExclusiveDir(exclusiveFolders, dirPath, dir.Name()) {
 			continue
 		}
-		dirStructureLink := filepath.Clean(fmt.Sprintf("/s/%s%s", project, dirPath))
-		dirContentsLink := filepath.Clean(fmt.Sprintf("/c/%s%s", project, dirPath))
-		dirStructureUrl := fmt.Sprintf("%s%s", selectedConfig.ProjectURL, dirStructureLink)
-		dirContentsUrl := fmt.Sprintf("%s%s", selectedConfig.ProjectURL, dirContentsLink)
+		dirStructureLink := filepath.ToSlash(filepath.Clean(fmt.Sprintf("/s/%s%s", project, dirPath)))
+		dirContentsLink := filepath.ToSlash(filepath.Clean(fmt.Sprintf("/c/%s%s", project, dirPath)))
+		dirStructureUrl := filepath.ToSlash(fmt.Sprintf("%s%s", selectedConfig.ProjectURL, dirStructureLink))
+		dirContentsUrl := filepath.ToSlash(fmt.Sprintf("%s%s", selectedConfig.ProjectURL, dirContentsLink))
 
 		fmt.Fprintf(w, `<li><div class='item'><span>%s</span> 
 			<a href='%s' target='_blank' class='buttons' title="Display structure in directory"><i class='fas fa-sitemap' style='color:orange'></i></a>
