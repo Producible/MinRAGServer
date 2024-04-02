@@ -519,7 +519,7 @@ func writeDirectory(w http.ResponseWriter, path string, rootPath string, project
 				<a href='%s' target='_blank' class='buttons' title="Display in external URL"><i class='fas fa-external-link-alt' style='color:orange'></i></a>
 				<button class='copy-button buttons' data-url='%s' title="Copy external URL"><i class='fas fa-copy' style='color:#20B2AA'></i></button>
 				<button class='copy-button-info buttons' data-info='%s' title="Copy external URL with path"><i class='fas fa-copy'></i></button>
-				<a href='%s' target='_blank' class='buttons' title="Display content in JSON"><i class='fas fa-file-code' style='color:#87CEFA'></i></a>
+				<a href='%s' target='_blank' class='buttons' title="Display content in JSON with line numnbers"><i class='fas fa-file-code' style='color:#87CEFA'></i></a>
 			</div></li>`, fileViewLink, file.Name(), url, url, info, jsonLink)
 		}
 	}
